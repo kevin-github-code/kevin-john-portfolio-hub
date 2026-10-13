@@ -1,24 +1,80 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
+import { useState, type FormEvent } from 'react';
+import { ArrowRight, ArrowUpRight, Download, MapPin, Headphones, Server, Code2, Globe2, GraduationCap, Mail, Linkedin, Github, Check, Terminal, ShieldCheck, Network, Box, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Header, Footer, SectionHeading, Reveal, ProjectCard } from '@/components/portfolio-ui';
+import { usePortfolio } from '@/components/portfolio-context';
+import { projects } from '@/data/projects';
+import { contactSchema, createContactLink } from '@/lib/contact';
+import workstation from '@/assets/workstation.jpg';
+import cv from '@/assets/cv.asset.json';
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
+export const Route = createFileRoute('/')({
+  head: () => ({ meta: [
+    { title: 'Kevin John — Técnico de Informática em Moçambique' },
+    { name: 'description', content: 'Portefólio de Kevin John: suporte informático, administração de sistemas e desenvolvimento web em Maputo, Moçambique.' },
+    { property: 'og:title', content: 'Kevin John — Tecnologia com propósito' },
+    { property: 'og:description', content: 'Projectos, competências e percurso de um profissional de TI em Moçambique.' },
+    { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' },
+  ] }), component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  const { language: l } = usePortfolio();
+  const pt = l === 'pt';
+  const [filter, setFilter] = useState('all');
+  const [formState, setFormState] = useState<'idle' | 'error' | 'ready'>('idle');
+  const services = [
+    { icon: Headphones, title: pt ? 'Suporte Informático' : 'IT Support', body: pt ? 'Resolver problemas, apoiar pessoas e manter a tecnologia a funcionar. Do diagnóstico à solução.' : 'Solving problems, supporting people and keeping technology running. From diagnosis to solution.' },
+    { icon: Server, title: pt ? 'Administração de Sistemas' : 'Systems Administration', body: pt ? 'Configurar e administrar servidores, redes e ambientes virtualizados com segurança e eficiência.' : 'Configuring and administering servers, networks and virtual environments securely and efficiently.' },
+    { icon: Code2, title: pt ? 'Desenvolvimento' : 'Development', body: pt ? 'Transformar necessidades reais em aplicações web, formulários de dados e automações úteis.' : 'Turning real needs into web applications, data collection forms and useful automations.' },
+  ];
+  const skills = [
+    [pt ? 'Linguagens' : 'Languages', ['Java', 'PHP', 'JavaScript', 'Python', 'C / C++ / C#', 'Kotlin']],
+    ['Frameworks & Web', ['Laravel', 'Node.js', 'WordPress']],
+    [pt ? 'Infraestrutura' : 'Infrastructure', ['Docker', 'VirtualBox', 'VMware', 'Windows Server', 'Linux', 'Active Directory']],
+    [pt ? 'Dados & Formulários' : 'Data & Forms', ['ODK', 'XLSForm', 'KoBoToolbox', 'Survey123']],
+    [pt ? 'Automação' : 'Automation', ['n8n', 'LLMs']],
+  ] as const;
+  const timeline = [
+    { date: pt ? 'EM CURSO' : 'IN PROGRESS', title: pt ? 'Licenciatura em Informática de Gestão' : "Bachelor’s in Management Information Systems", place: 'ISGEGM · Marracuene', body: pt ? '3.º ano · Instituto Superior de Gestão e Empreendedorismo Gwaza Muthini.' : '3rd year · Instituto Superior de Gestão e Empreendedorismo Gwaza Muthini.' },
+    { date: pt ? '2023 — PRESENTE' : '2023 — PRESENT', title: pt ? 'Técnico de Informática' : 'IT Technician', place: pt ? 'Instituto Nacional de Saúde · Moçambique' : 'National Institute of Health · Mozambique', body: pt ? 'Suporte técnico, formulários electrónicos para investigação em saúde e apoio à administração de sistemas.' : 'Technical support, electronic forms for health research and systems administration support.' },
+    { date: pt ? '2022 — PRESENTE' : '2022 — PRESENT', title: pt ? 'Programador independente' : 'Freelance Software Developer', place: pt ? 'Projectos independentes' : 'Independent projects', body: pt ? 'Desenvolvimento web com Laravel, PHP e WordPress, automação de processos e suporte informático.' : 'Web development with Laravel, PHP and WordPress, process automation and IT support.' },
+    { date: pt ? 'FORMAÇÃO TÉCNICA' : 'TECHNICAL EDUCATION', title: pt ? 'Diploma Técnico em Informática' : 'Technical Diploma in Information Technology', place: pt ? 'Suporte Informático & Programação Web' : 'IT Support & Web Programming', body: pt ? 'Formação em electricidade industrial, suporte informático e programação web. Ensino secundário na Escola Heróis Moçambicanos.' : 'Training in industrial electricity, IT support and web programming. Secondary education at Heróis Moçambicanos School.' },
+  ];
+  function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); const data = Object.fromEntries(new FormData(e.currentTarget));
+    if (!contactSchema.safeParse(data).success) { setFormState('error'); return; }
+    setFormState('ready'); window.location.href = createContactLink(data);
+  }
+  const filtered = projects.filter(p => filter === 'all' || (filter === 'web' ? ['alkini', 'gestao-filas'].includes(p.slug) : filter === 'data' ? p.slug === 'formularios-saude' : ['laboratorios-infraestrutura', 'seguranca-internet'].includes(p.slug)));
+  return <div id="top"><Header/><main>
+    <section className="hero"><img className="hero-image" src={workstation} alt={pt ? 'Estação de trabalho com computador e servidor' : 'Computer and server workstation'} width={1536} height={1024}/><div className="hero-shade"/>
+      <div className="container hero-content"><div className="hero-location"><span className="status-dot"/><span>MAPUTO, {pt ? 'MOÇAMBIQUE' : 'MOZAMBIQUE'}</span></div>
+      <h1>Kevin John<span className="text-primary">.</span></h1><div className="hero-title">{pt ? 'Técnico de Informática' : 'IT Technician'}</div>
+      <p className="hero-specialties">{pt ? 'Suporte. Sistemas. Desenvolvimento.' : 'Support. Systems. Development.'}</p>
+      <p className="hero-intro">{pt ? 'Ligo pessoas à tecnologia e transformo desafios reais em soluções que fazem a diferença.' : 'Connecting people with technology and turning real challenges into solutions that make a difference.'}</p>
+      <div className="hero-buttons"><Button asChild size="lg"><a href="#projectos">{pt ? 'Ver projectos' : 'View projects'}<ArrowUpRight/></a></Button><Button asChild size="lg" variant="outline"><a href={cv.url} download="Kevin_John_CV_EN.pdf" target="_blank" rel="noreferrer"><Download/>{pt ? 'Descarregar CV' : 'Download CV'}</a></Button><Button asChild variant="link" className="hero-contact"><a href="#contacto">{pt ? 'Contacto' : 'Contact'}<ArrowRight/></a></Button></div>
+      <div className="hero-footnote"><span className="status-dot"/>{pt ? 'Aberto a oportunidades e colaborações' : 'Open to opportunities and collaborations'}</div></div>
+      <a href="#sobre" className="hero-scroll" aria-label={pt ? 'Ir para Sobre mim' : 'Go to About me'}><span>{pt ? 'CONHEÇA O MEU TRABALHO' : 'DISCOVER MY WORK'}</span><ChevronDown size={16}/></a>
+    </section>
+    <div className="expertise-strip"><div className="container"><span><Headphones/>{pt ? 'Suporte Informático' : 'IT Support'}</span><i/><span><Server/>{pt ? 'Administração de Sistemas' : 'Systems Administration'}</span><i/><span><Code2/>{pt ? 'Desenvolvimento Web' : 'Web Development'}</span><i/><span><MapPin/>Maputo, MZ</span></div></div>
+    <section id="sobre" className="section container"><Reveal><SectionHeading number="01" eyebrow={pt ? 'SOBRE MIM' : 'ABOUT ME'} title={pt ? 'Tecnologia com propósito.' : 'Technology with purpose.'}><span className="section-aside">{pt ? 'Curiosidade constante. Impacto real.' : 'Always curious. Real impact.'}</span></SectionHeading>
+      <div className="about-layout"><p className="about-text">{pt ? <>Sou Kevin, técnico de informática e estudante do 3.º ano de <strong>Informática de Gestão</strong>. Trabalho entre o suporte, a administração de sistemas e o desenvolvimento — com uma ideia simples: a melhor tecnologia é a que resolve problemas reais.<br/><br/>Da investigação em saúde a projectos independentes, gosto de construir soluções práticas, aprender continuamente e contribuir para o futuro digital de Moçambique.</> : <>I'm Kevin, an IT technician and a third-year <strong>Management Information Systems</strong> student. I work across support, systems administration and development — with one simple idea: the best technology solves real problems.<br/><br/>From health research to independent projects, I enjoy building practical solutions, learning continuously and contributing to Mozambique’s digital future.</>}</p>
+      <div className="about-facts"><div><GraduationCap/><span>{pt ? 'Informática de Gestão' : 'Management Information Systems'}<small>{pt ? '3.º ano · Licenciatura em curso' : '3rd year · Degree in progress'}</small></span></div><div><Globe2/><span>{pt ? 'Sem fronteiras na comunicação' : 'Communication without borders'}<small>{pt ? 'Português nativo · Inglês fluente' : 'Native Portuguese · Fluent English'}<br/>{pt ? 'Espanhol e Francês básicos' : 'Basic Spanish and French'}</small></span></div></div></div>
+      <div className="services-grid">{services.map(({ icon: Icon, title, body }, i) => <article className="service-card" key={title}><div className="service-top"><Icon size={24} strokeWidth={1.5}/><span>0{i+1}</span></div><h3>{title}</h3><p>{body}</p></article>)}</div></Reveal></section>
+    <section id="projectos" className="section project-section"><div className="container"><Reveal><SectionHeading number="02" eyebrow={pt ? 'PROJECTOS SELECCIONADOS' : 'SELECTED PROJECTS'} title={pt ? 'Do desafio à solução.' : 'From challenge to solution.'}><p className="section-aside">{pt ? 'Uma selecção do que tenho construído.' : 'A selection of what I have been building.'}</p></SectionHeading>
+      <div className="project-filters" aria-label={pt ? 'Filtrar projectos' : 'Filter projects'}>{([['all',pt ? 'Todos os projectos' : 'All projects'],['web',pt ? 'Desenvolvimento' : 'Development'],['data',pt ? 'Dados & Saúde' : 'Data & Health'],['infra',pt ? 'Infraestrutura & Segurança' : 'Infrastructure & Security']] as const).map(([value,label]) => <Button key={value} variant="ghost" aria-pressed={filter===value} className={filter===value ? 'active-filter' : ''} onClick={() => setFilter(value)}>{label}{value==='all' && <span className="filter-count">05</span>}</Button>)}</div>
+      <div className="projects-grid">{filtered.map(p => <ProjectCard project={p} key={p.slug} index={projects.indexOf(p)}/>)}</div></Reveal></div></section>
+    <section id="infraestrutura" className="section container"><Reveal><SectionHeading number="03" eyebrow={pt ? 'INFRAESTRUTURA & SEGURANÇA' : 'INFRASTRUCTURE & SECURITY'} title={pt ? 'Bases sólidas. Sistemas fiáveis.' : 'Solid foundations. Reliable systems.'}/><div className="infra-layout"><div className="infra-intro"><p>{pt ? 'Por detrás de uma boa aplicação, existe uma infraestrutura bem pensada. Exploro, configuro e testo ambientes que ligam teoria à prática.' : 'Behind a good application is thoughtfully designed infrastructure. I explore, configure and test environments that connect theory with practice.'}</p><div className="terminal-panel"><div className="terminal-heading"><span><i/><i/><i/></span><small>kevin@lab: ~</small><Terminal size={15}/></div><div className="terminal-code"><p><span>$</span> whoami</p><p className="terminal-output">kevin · {pt ? 'administrador de sistemas' : 'systems administrator'}</p><p><span>$</span> systemctl status learning</p><p className="terminal-output"><span>●</span> active (running)</p><p><span>$</span> <span className="terminal-cursor">▍</span></p></div></div></div><div className="infra-items">{[
+      [Network, 'Windows Server 2022 & Active Directory', pt ? 'Serviços de directório, utilizadores e administração de ambientes Windows.' : 'Directory services, users and Windows environment administration.'],
+      [Box, pt ? 'Virtualização & Docker' : 'Virtualisation & Docker', pt ? 'VirtualBox, VMware e contentores para laboratórios e validação local.' : 'VirtualBox, VMware and containers for labs and local validation.'],
+      [Terminal, 'Linux', pt ? 'Administração de servidores, linha de comandos, SSH e gestão de serviços.' : 'Server administration, command line, SSH and service management.'],
+      [ShieldCheck, pt ? 'Fundamentos de cibersegurança' : 'Cybersecurity fundamentals', pt ? 'Boas práticas de segurança e aprendizagem contínua em ambientes controlados.' : 'Security best practices and continuous learning in controlled environments.'],
+    ].map(([Icon,title,body]) => { const I = Icon as typeof Network; return <div className="infra-item" key={String(title)}><I size={22}/><div><h3>{String(title)}</h3><p>{String(body)}</p></div><Check size={16}/></div>; })}</div></div></Reveal></section>
+    <section id="competencias" className="section skills-section"><div className="container"><Reveal><SectionHeading number="04" eyebrow={pt ? 'COMPETÊNCIAS' : 'SKILLS'} title={pt ? 'As ferramentas do meu trabalho.' : 'The tools of my trade.'}/><div className="skills-list">{skills.map(([title,items],i) => <div className="skill-row" key={title}><div><span className="skill-index">0{i+1}</span><h3>{title}</h3></div><div className="skill-tags">{items.map(t => <span key={t}>{t}</span>)}</div></div>)}</div></Reveal></div></section>
+    <section id="percurso" className="section container"><Reveal><SectionHeading number="05" eyebrow={pt ? 'FORMAÇÃO & PERCURSO' : 'EDUCATION & JOURNEY'} title={pt ? 'Sempre a aprender. Sempre a construir.' : 'Always learning. Always building.'}/><div className="timeline">{timeline.map(t => <article className="timeline-item" key={t.title}><span className="timeline-date">{t.date}</span><div className="timeline-marker"/><div className="timeline-body"><h3>{t.title}</h3><span>{t.place}</span><p>{t.body}</p></div></article>)}</div><div className="conference-note"><GraduationCap size={20}/><p>{pt ? 'Também pelo conhecimento partilhado.' : 'Also through shared knowledge.'}<small>{pt ? 'Fórum de Saúde Pós-Graduada · Conferência Nacional de Saúde 2024 · Jornadas Científicas ISGEGM 2025' : 'Postgraduate Health Forum · National Health Conference 2024 · ISGEGM Scientific Days 2025'}</small></p></div></Reveal></section>
+    <section id="contacto" className="section contact-section"><div className="container"><Reveal><SectionHeading number="06" eyebrow={pt ? 'CONTACTO' : 'CONTACT'} title={pt ? 'Vamos construir algo juntos.' : 'Let’s build something together.'}/><div className="contact-layout"><div><p className="contact-intro">{pt ? 'Tem um projecto em mente, uma oportunidade ou apenas quer trocar ideias? A conversa começa aqui.' : 'Have a project in mind, an opportunity or simply want to exchange ideas? The conversation starts here.'}</p><a href="mailto:kevin.johnpm@gmail.com" className="contact-email">kevin.johnpm@gmail.com<ArrowUpRight size={21}/></a><div className="social-links"><a href="https://www.linkedin.com/in/kevin-john-pm" target="_blank" rel="noreferrer"><Linkedin size={18}/>LinkedIn<ArrowUpRight size={14}/></a><span title={pt ? 'Perfil por confirmar' : 'Profile to be confirmed'}><Github size={18}/>GitHub <small>{pt ? '(em breve)' : '(coming soon)'}</small></span></div><p className="contact-location"><MapPin size={16}/>Maputo, {pt ? 'Moçambique' : 'Mozambique'}</p></div>
+      <form onSubmit={submit} className="contact-form"><div className="form-row"><label>{pt ? 'Nome' : 'Name'}<input name="name" required minLength={2} maxLength={100} autoComplete="name" placeholder={pt ? 'O seu nome' : 'Your name'}/></label><label>Email<input name="email" required type="email" maxLength={255} autoComplete="email" placeholder={pt ? 'O seu email' : 'Your email'}/></label></div><label>{pt ? 'Mensagem' : 'Message'}<textarea name="message" required minLength={10} maxLength={2000} rows={4} placeholder={pt ? 'Conte-me um pouco sobre o que tem em mente...' : 'Tell me a little about what you have in mind...'}/></label>{formState==='error' && <p className="text-destructive" role="alert">{pt ? 'Verifique o nome, o email e a mensagem (mínimo 10 caracteres).' : 'Check your name, email and message (at least 10 characters).'}</p>}{formState==='ready' && <p className="text-primary" role="status">{pt ? 'Mensagem preparada. Conclua o envio na sua aplicação de email.' : 'Message prepared. Complete sending in your email application.'}</p>}<Button type="submit" size="lg">{pt ? 'Enviar mensagem' : 'Send message'}<ArrowUpRight/></Button><small className="form-note">{pt ? 'Abre a sua aplicação de email. Nenhum dado é guardado no site.' : 'Opens your email application. No data is stored on this website.'}</small></form></div></Reveal></div></section>
+  </main><Footer/></div>;
 }
